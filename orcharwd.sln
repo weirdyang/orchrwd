@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrchardCore.Cms.Web", "OrchardCore.Cms.Web\OrchardCore.Cms.Web.csproj", "{F7FD51D7-7803-4C61-9AC6-AE71E8CC0FA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OC.Workflow.Versioning", "OC.Workflow.Versioning\OC.Workflow.Versioning.csproj", "{FA911EBD-E129-4CDA-AA91-D30A21E40B60}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F7FD51D7-7803-4C61-9AC6-AE71E8CC0FA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7FD51D7-7803-4C61-9AC6-AE71E8CC0FA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7FD51D7-7803-4C61-9AC6-AE71E8CC0FA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7FD51D7-7803-4C61-9AC6-AE71E8CC0FA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA911EBD-E129-4CDA-AA91-D30A21E40B60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA911EBD-E129-4CDA-AA91-D30A21E40B60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA911EBD-E129-4CDA-AA91-D30A21E40B60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA911EBD-E129-4CDA-AA91-D30A21E40B60}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C7F1AF21-406C-487D-8ACA-2D07A64EB5BC}
+	EndGlobalSection
+EndGlobal

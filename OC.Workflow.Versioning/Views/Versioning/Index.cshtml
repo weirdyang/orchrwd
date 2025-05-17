@@ -1,0 +1,135 @@
+﻿
+@model IEnumerable<WorkflowVersionViewModel>
+
+@{
+
+    ViewData["Title"] = "Workflow Types";
+
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Workflow Types</h1>
+        <div class="d-flex">
+            <div class="input-group search-box me-2">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search workflows..." />
+                <button class="btn btn-outline-secondary" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: -0.125em;">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                    </svg>
+                </button>
+            </div>
+            <select id="statusFilter" class="form-select me-2" style="width: auto;">
+                <option value="all">All Statuses</option>
+                <option value="enabled">Enabled</option>
+                <option value="disabled">Disabled</option>
+            </select>
+        </div>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="workflowGrid">
+        @foreach (var item in Model)
+        {
+            <div class="col workflow-item" data-name="@item.WorkflowType.Name.ToLower()" data-id="@item.WorkflowType.WorkflowTypeId.ToLower()" data-status="@(item.WorkflowType.IsEnabled ? "enabled" : "disabled")">
+                <div class="card h-100 workflow-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">@item.WorkflowType.Name</h5>
+                            <span class="status-badge badge @(item.WorkflowType.IsEnabled ? "bg-success" : "bg-secondary")">
+                                @(item.WorkflowType.IsEnabled ? "Enabled" : "Disabled")
+                            </span>
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted">@item.WorkflowType.WorkflowTypeId</h6>
+                        <div class="d-flex justify-content-between mt-3">
+                            <span class="text-muted">Type: @(item.WorkflowType.IsSingleton ? "Singleton" : "Multiple")</span>
+                            <span class="badge bg-info text-white">@item.TotalVersions versions</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent text-end">
+                        @if (item.TotalVersions > 0)
+                        {
+                            <a asp-route="VersioningDetails" asp-route-id="@item.WorkflowType.WorkflowTypeId" class="btn btn-sm btn-outline-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1" style="vertical-align: -0.125em;">
+                                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                                </svg>
+                                View Versions
+                            </a>
+                        }
+                        <a asp-route="VersioningCreateVersion" asp-route-id="@item.WorkflowType.WorkflowTypeId" class="btn btn-sm btn-success ms-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1" style="vertical-align: -0.125em;">
+                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
+                            </svg>
+                            Create Version
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div id="noResultsMessage" class="alert alert-info text-center mt-4 d-none">
+        No workflow types found matching your search criteria.
+    </div>
+</div>
+
+<script at="Foot">
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set up search and filtering
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const workflowItems = document.querySelectorAll('.workflow-item');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+
+        function updateFilters() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusValue = statusFilter.value;
+            let visibleCount = 0;
+
+            workflowItems.forEach(item => {
+                const matchesSearch =
+                    item.dataset.name.includes(searchTerm) ||
+                    item.dataset.id.includes(searchTerm);
+
+                const matchesStatus =
+                    statusValue === 'all' ||
+                    item.dataset.status === statusValue;
+
+                if (matchesSearch && matchesStatus) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0) {
+                noResultsMessage.classList.remove('d-none');
+            } else {
+                noResultsMessage.classList.add('d-none');
+            }
+        }
+
+        searchInput.addEventListener('input', updateFilters);
+        statusFilter.addEventListener('change', updateFilters);
+    });
+</script>
+
+<style at="Foot">
+    .workflow-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+
+        .workflow-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .search-box {
+        max-width: 300px;
+    }
+</style>

@@ -345,7 +345,6 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
-/MessageQueueManager.API/Logs/
 /Orchard.Sample.Web/App_Data/Sites/Default
 /Orchard.Sample.Web/App_Data/tenants.json
 /OrchardCore.Web.MVC/App_Data
@@ -355,6 +354,6 @@ ASALocalRun/
 release/container/
 docker-files/container/
 /OrchardCore.Application/Localization
-/OrchardCore.Cms.Web/ArchivedWorkflows/4hcfxp9b626z66585r9q3t92cs
+/OrchardCore.Cms.Web/ArchivedWorkflows
 /OrchardCore.Cms.Web/Localization
-/OrchardCore.Cms.Web/wwwroot/Default/is-cache/9/3/a/8/3/5/f/f/d/1/4/7
+/OrchardCore.Cms.Web/wwwroot

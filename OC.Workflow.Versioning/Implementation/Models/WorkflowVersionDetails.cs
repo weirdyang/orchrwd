@@ -8,6 +8,6 @@ namespace OC.Workflow.Versioning.Implementation.Models
         public WorkflowType WorkflowType { get; set; } = new();
         public WorkflowVersionInfo VersionInfo { get; set; } = new();
         public List<VersionInfo> Versions { get; set; } = new List<VersionInfo>();
-
+        public List<VersionComment> VersionComments { get; set; } = new();
     }
 }

@@ -81,7 +81,7 @@ namespace OC.Workflow.Versioning.Controllers
                 return NotFound();
             }
 
-            WorkflowVersionInfo? versionInfo = await _versioningManager.AddWorkflowVersionAsync(request.WorkflowTypeId);
+            WorkflowVersionInfo? versionInfo = await _versioningManager.AddWorkflowVersionAsync(request.WorkflowTypeId, request.Comment ?? string.Empty);
 
             return Ok(versionInfo);
         }
@@ -120,6 +120,7 @@ namespace OC.Workflow.Versioning.Controllers
             catch (Exception ex)
             {
                 // Log the exception
+                _logger.LogError(ex, "Error restoring workflow {@request}", request);
                 return StatusCode(500, "An error occurred while restoring the version");
             }
         }
@@ -144,6 +145,7 @@ namespace OC.Workflow.Versioning.Controllers
                 return NotFound();
             }
             List<VersionInfo> versions = await GetVersionsFromFileSystemAsync(id);
+            List<VersionComment> versionComments = await GetVersionCommentsFromFileSystemAsync(id);
             JsonObject? active = JObject.FromObject(workflowType, _jsonSerializerOptions.Value.SerializerOptions);
             active?.Remove(nameof(workflowType.Id));
             WorkflowVersionDetails model = new WorkflowVersionDetails
@@ -151,12 +153,65 @@ namespace OC.Workflow.Versioning.Controllers
                 ActiveJson = active?.ToString() ?? string.Empty,
                 WorkflowType = workflowType,
                 VersionInfo = versionInfo,
-                Versions = versions
+                Versions = versions,
+                VersionComments = versionComments
             };
 
             return View("Details", model);
         }
+        private async Task<List<VersionComment>> GetVersionCommentsFromFileSystemAsync(string workflowTypeId)
+        {
+            List<VersionComment> result = new();
+            string folderPath = WorkflowVersionSettings.VersionFolder(workflowTypeId);
 
+            if (!Directory.Exists(folderPath))
+            {
+                return result;
+            }
+            IOrderedEnumerable<string> files = Directory
+                .GetFiles(folderPath, $"{workflowTypeId}.*.comments.txt")
+                .OrderByDescending(f => f);
+
+            foreach (string? file in files)
+            {
+                string fileName = Path.GetFileName(file);
+                // Extract version from filename (format: {typeId}.{version}.comments.txt)
+                string[] parts = fileName.Split('.');
+                if (parts.Length >= 3 && long.TryParse(parts[1], out long version))
+                {
+                    string comment = await System.IO.File.ReadAllTextAsync(file);
+                    result.Add(new VersionComment
+                    {
+                        Comment = comment,
+                        Version = version.ToString()
+                    });
+                }
+            }
+
+            return result;
+        }
+        private async Task<VersionComment> GetVersionCommentFromFileSystemAsync(string workflowTypeId, long version)
+        {
+            VersionComment result = new();
+            result.Version = version.ToString();
+            string folderPath = WorkflowVersionSettings.VersionFolder(workflowTypeId);
+
+            if (!Directory.Exists(folderPath))
+            {
+                return result;
+            }
+            string? fileName = Directory
+                .GetFiles(folderPath, $"{workflowTypeId}.{version}.comments.txt")
+                .FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(fileName))
+            {
+                string comment = await System.IO.File.ReadAllTextAsync(fileName);
+                result.Comment = comment;
+            }
+
+            return result;
+        }
         private async Task<List<VersionInfo>> GetVersionsFromFileSystemAsync(string workflowTypeId)
         {
             List<VersionInfo> result = new List<VersionInfo>();
@@ -191,23 +246,6 @@ namespace OC.Workflow.Versioning.Controllers
 
             return result;
         }
-        public async Task<IActionResult> CreateVersionAsync(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                return BadRequest("Workflow type ID is required");
-            }
-
-            WorkflowType workflowType = await _workflowTypeStore.GetAsync(id);
-            if (workflowType == null)
-            {
-                return NotFound();
-            }
-
-            WorkflowVersionInfo? versionInfo = await _versioningManager.AddWorkflowVersionAsync(id);
-
-            return await IndexAsync();
-        }
         public async Task<IActionResult> DiffAsync(string id, long? oldVersion, long? newVersion)
         {
             if (string.IsNullOrEmpty(id))
@@ -230,6 +268,8 @@ namespace OC.Workflow.Versioning.Controllers
             // Determine which versions to compare
             VersionInfo oldVersionInfo = new VersionInfo { WorkflowTypeId = id, Json = activeJson };
             VersionInfo newVersionInfo = new VersionInfo { WorkflowTypeId = id, Json = activeJson };
+            VersionComment oldComment = new();
+            VersionComment newComment = new();
 
             // If old version specified, find it
             if (oldVersion.HasValue)
@@ -239,6 +279,7 @@ namespace OC.Workflow.Versioning.Controllers
                 {
                     oldVersionInfo = oldVersionData;
                 }
+                oldComment = await GetVersionCommentFromFileSystemAsync(id, oldVersion.Value);
             }
 
             // If new version specified, find it
@@ -249,13 +290,22 @@ namespace OC.Workflow.Versioning.Controllers
                 {
                     newVersionInfo = newVersionData;
                 }
+                newComment = await GetVersionCommentFromFileSystemAsync(id, newVersion.Value);
             }
 
             // Create the model
             DiffModel model = new DiffModel
             {
-                Old = oldVersionInfo,
-                New = newVersionInfo
+                Old = new()
+                {
+                    VersionInfo = oldVersionInfo,
+                    VersionComment = oldComment
+                },
+                New = new()
+                {
+                    VersionInfo = newVersionInfo,
+                    VersionComment = newComment
+                }
             };
 
             return View("Diff", model);

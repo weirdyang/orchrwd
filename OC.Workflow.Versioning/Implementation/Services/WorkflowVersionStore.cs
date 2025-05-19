@@ -69,7 +69,23 @@ namespace OC.Workflow.Versioning.Implementation.Services
                 ? throw new InvalidOperationException("Unable to cast JSON to WorkflowType")
                 : workflowType;
         }
+        public async Task PersistCommentAsync(string typeId, long version, string comment)
+        {
+            if (string.IsNullOrWhiteSpace(comment))
+            {
+                return;
+            }
+            ;
+            // Generate a file path using the workflow name/id
+            string folderPath = WorkflowVersionSettings.VersionFolder(typeId);
+            // Ensure directory exists
+            Directory.CreateDirectory(folderPath);
 
+            string fileName = WorkflowVersionSettings.VersionCommentFileName(typeId, version);
+            string filePath = Path.Combine(folderPath, fileName);
+
+            await File.WriteAllTextAsync(filePath, comment);
+        }
         public async Task PersistAsync(string typeId, long version)
         {
             WorkflowType? workflowType = await _store.GetAsync(typeId);

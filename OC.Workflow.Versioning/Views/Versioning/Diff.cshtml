@@ -1,30 +1,72 @@
 ﻿@using OC.Workflow.Versioning.Implementation.Models
 @model DiffModel
 @{
-    var versionNumber = Model.New.Version;
-    var latestVersionId = Model.New.Version;
-    var newTime = await DisplayAsync(await New.Timespan(Utc: Model.New.CreatedUtc, Format: "g"));
-    var newText = Model.New.Version?.ToString() ?? "ACTIVE";
-    var oldTime = await DisplayAsync(await New.Timespan(Utc: Model.Old.CreatedUtc, Format: "g"));
-    var oldText = Model.Old.Version?.ToString() ?? "ACTIVE";
+    var newTime = await DisplayAsync(await New.Timespan(Utc: Model.New.VersionInfo.CreatedUtc, Format: "g"));
+    var newText = Model.New.VersionInfo.Version?.ToString() ?? "ACTIVE";
+    var oldTime = await DisplayAsync(await New.Timespan(Utc: Model.Old.VersionInfo.CreatedUtc, Format: "g"));
+    var oldText = Model.Old.VersionInfo.Version?.ToString() ?? "ACTIVE";
 }
-<a asp-route="VersioningDetails" asp-route-id="@Model.New.WorkflowTypeId" class="back-link text-secondary">
+<a asp-route="VersioningDetails" asp-route-id="@Model.New.VersionInfo.WorkflowTypeId" class="back-link text-secondary">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1">
         <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
     </svg>
     Back
 </a>
 <style asp-name="audittrailui" asp-src="~/OrchardCore.AuditTrail/Styles/audittrailui.min.css" debug-src="~/OrchardCore.AuditTrail/Styles/audittrailui.css" at="Head" depends-on="admin"></style>
-
+<!-- Version Comments Section -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Version @oldText Comment</h5>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Old.VersionComment?.Comment))
+                {
+                    <p>@Model.Old.VersionComment.Comment</p>
+                }
+                else
+                {
+                    <p class="text-muted">No comment available for this version.</p>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Version @newText Comment</h5>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.New.VersionComment?.Comment))
+                {
+                    <p>@Model.New.VersionComment.Comment</p>
+                }
+                else
+                {
+                    <p class="text-muted">No comment available for this version.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 @if (Model.Old != null)
 {
     <script asp-name="jsdiff" depends-on="jQuery" asp-src="~/OrchardCore.AuditTrail/Scripts/diff.min.js" debug-src="~/OrchardCore.AuditTrail/Scripts/diff.js" cdn-src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/4.0.2/diff.min.js" debug-cdn-src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/4.0.2/diff.js" version="4.0.2" at="Foot"></script>
     <script at="Foot" asp-name="prism" depends-on="jsdiff" asp-src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js"></script>
     <script at="Foot" asp-name="prismjson" depends-on="prism" asp-src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/components/prism-json.min.js"></script>
     <script at="Foot" asp-name="diffviewer" depends-on="prismjson" asp-src="~/OrchardCore.AuditTrail/Scripts/diffviewer.js"></script>
-    <div id="diffapp" data-split="@T["Split"]" data-unified="@T["Unified"]" data-old="@Model.Old.Json" data-new="@Model.New.Json" data-old-time="@oldTime" data-old-text="@oldText" data-new-time="@newTime" data-new-text="@newText"></div>
+    <div id="diffapp" data-split="@T["Split"]" data-unified="@T["Unified"]" data-old="@Model.Old.VersionInfo.Json" data-new="@Model.New.VersionInfo.Json" data-old-time="@oldTime" data-old-text="@oldText" data-new-time="@newTime" data-new-text="@newText"></div>
 }
 else
 {
     <p class="alert alert-info">@T["No previous content item available to diff against"]</p>
 }
+<style at="Foot">
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        text-decoration: none;
+    }
+</style>

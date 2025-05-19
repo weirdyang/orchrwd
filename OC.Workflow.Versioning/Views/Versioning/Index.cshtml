@@ -55,12 +55,14 @@
                                 View Versions
                             </a>
                         }
-                        <a asp-route="VersioningCreateVersion" asp-route-id="@item.WorkflowType.WorkflowTypeId" class="btn btn-sm btn-success ms-2">
+                        <button class="btn btn-sm btn-success ms-2 create-version-btn"
+                                data-workflow-id="@item.WorkflowType.WorkflowTypeId"
+                                data-workflow-name="@item.WorkflowType.Name">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1" style="vertical-align: -0.125em;">
                                 <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
                             </svg>
                             Create Version
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -70,7 +72,30 @@
         No workflow types found matching your search criteria.
     </div>
 </div>
-
+<!-- Create Version Modal -->
+<div class="modal fade" id="createVersionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Version</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Creating new version for: <strong id="workflowName"></strong></p>
+                <div class="mb-3">
+                    <label for="versionComment" class="form-label">Version Comment (Optional)</label>
+                    <textarea class="form-control" id="versionComment" rows="3"
+                              placeholder="Describe the changes in this version..."></textarea>
+                </div>
+                <input type="hidden" id="workflowId" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmCreateVersionBtn">Create Version</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script at="Foot">
     document.addEventListener('DOMContentLoaded', () => {
         // Set up search and filtering
@@ -78,6 +103,41 @@
         const statusFilter = document.getElementById('statusFilter');
         const workflowItems = document.querySelectorAll('.workflow-item');
         const noResultsMessage = document.getElementById('noResultsMessage');
+        const createVersionBtns = document.querySelectorAll('.create-version-btn');
+        const createVersionModal = document.getElementById('createVersionModal');
+        const workflowNameElement = document.getElementById('workflowName');
+        const workflowIdInput = document.getElementById('workflowId');
+        const versionCommentInput = document.getElementById('versionComment');
+        const confirmCreateVersionBtn = document.getElementById('confirmCreateVersionBtn');
+
+        createVersionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const workflowId = this.dataset.workflowId;
+                const workflowName = this.dataset.workflowName;
+
+                // Set values in the modal
+                workflowNameElement.textContent = workflowName;
+                workflowIdInput.value = workflowId;
+                versionCommentInput.value = '';
+
+                // Show the modal
+                const modal = new bootstrap.Modal(createVersionModal);
+                modal.show();
+            });
+        });
+
+        // Handle create version confirmation
+        confirmCreateVersionBtn.addEventListener('click', function() {
+            const workflowId = workflowIdInput.value;
+            const comment = versionCommentInput.value;
+
+            // Create the version with comment
+            createNewVersion(workflowId, comment);
+
+            // Hide the modal
+            const modal = bootstrap.Modal.getInstance(createVersionModal);
+            modal.hide();
+        });
 
         function updateFilters() {
             const searchTerm = searchInput.value.toLowerCase();
@@ -110,6 +170,41 @@
 
         searchInput.addEventListener('input', updateFilters);
         statusFilter.addEventListener('change', updateFilters);
+
+        // Function to create a new version with a comment
+        function createNewVersion(workflowId, comment) {
+            // Show loading indicator
+            confirmCreateVersionBtn.disabled = true;
+            confirmCreateVersionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Creating...';
+
+            fetch('@Url.RouteUrl("VersioningCreatePost")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        workflowTypeId: workflowId,
+                        comment: comment
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to create version');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+        
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to create new version. Please try again.');
+                    // Reset button
+                    confirmCreateVersionBtn.disabled = false;
+                    confirmCreateVersionBtn.innerHTML = 'Create Version';
+                });
+        }
     });
 </script>
 

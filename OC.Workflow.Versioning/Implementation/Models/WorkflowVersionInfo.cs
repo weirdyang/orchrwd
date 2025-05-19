@@ -7,4 +7,10 @@
         public long? PreviousVersion { get; set; }
         public DateTime? LastRestoredTime { get; set; }
     }
+
+    public class VersionComment
+    {
+        public string Version { get; set; }
+        public string? Comment { get; set; }
+    }
 }

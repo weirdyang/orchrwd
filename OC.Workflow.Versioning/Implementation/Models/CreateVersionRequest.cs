@@ -3,5 +3,6 @@
     public class CreateVersionRequest
     {
         public string? WorkflowTypeId { get; set; }
+        public string? Comment { get; set; }
     }
 }

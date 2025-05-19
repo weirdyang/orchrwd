@@ -34,7 +34,7 @@ namespace OC.Workflow.Versioning.Implementation.Services
 
             return doc.Information.GetValueOrDefault(workflowTypeId);
         }
-        public async Task<WorkflowVersionInfo?> AddWorkflowVersionAsync(string workflowTypeId)
+        public async Task<WorkflowVersionInfo?> AddWorkflowVersionAsync(string workflowTypeId, string comment)
         {
             WorkflowVersioningDocument document = await _documentManager.GetOrCreateMutableAsync();
 
@@ -59,6 +59,7 @@ namespace OC.Workflow.Versioning.Implementation.Services
             }
             await _versionStore.PersistAsync(workflowTypeId, version);
             await _documentManager.UpdateAsync(document);
+            await _versionStore.PersistCommentAsync(workflowTypeId, version, comment);
             // write to file
             return document.Information.GetValueOrDefault(workflowTypeId);
         }

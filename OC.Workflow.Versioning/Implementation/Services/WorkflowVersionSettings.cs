@@ -13,5 +13,11 @@
 
             return $"{typeId}.{version}.json";
         }
+        public static string VersionCommentFileName(string typeId, long? version = null)
+        {
+            version ??= DateTime.UtcNow.Ticks;
+
+            return $"{typeId}.{version}.comments.txt";
+        }
     }
 }

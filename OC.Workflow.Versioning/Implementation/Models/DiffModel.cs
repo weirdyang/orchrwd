@@ -1,8 +1,13 @@
 ﻿namespace OC.Workflow.Versioning.Implementation.Models
 {
+    public class VersionDiffInfoModel
+    {
+        public VersionInfo VersionInfo { get; set; } = new();
+        public VersionComment VersionComment { get; set; } = new();
+    }
     public class DiffModel
     {
-        public VersionInfo Old { get; set; } = new();
-        public VersionInfo New { get; set; } = new();
+        public VersionDiffInfoModel Old { get; set; } = new();
+        public VersionDiffInfoModel New { get; set; } = new();
     }
 }

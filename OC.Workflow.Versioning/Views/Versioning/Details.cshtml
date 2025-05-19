@@ -17,6 +17,11 @@
         <div class="col-md-12">
             <h1>@Model.WorkflowType.Name</h1>
             <p class="text-muted">@Model.WorkflowType.WorkflowTypeId</p>
+            @if (Model.VersionInfo.LastRestoredTime is not null)
+            {
+                var time = await DisplayAsync(await New.Timespan(Utc: Model.VersionInfo.LastRestoredTime.GetValueOrDefault(), Format: "g"));
+                <p>Last restored: <em>@time</em></p>
+            }
         </div>
     </div>
 

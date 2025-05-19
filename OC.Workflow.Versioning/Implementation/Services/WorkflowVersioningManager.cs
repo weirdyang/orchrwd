@@ -34,6 +34,24 @@ namespace OC.Workflow.Versioning.Implementation.Services
 
             return doc.Information.GetValueOrDefault(workflowTypeId);
         }
+        public async Task<WorkflowVersionInfo> AddDefaultWorkflowVersionAsync(string workflowTypeId, long version)
+        {
+            WorkflowVersioningDocument document = await _documentManager.GetOrCreateMutableAsync();
+            WorkflowVersionInfo? existing = document.Information.GetValueOrDefault(workflowTypeId);
+            if (existing is not null)
+            {
+                return existing;
+            }
+            WorkflowVersionInfo versionInfo = new WorkflowVersionInfo
+            {
+                CurrentVersion = version,
+                PreviousVersion = null,
+                LastRestoredTime = null
+            };
+            document.Information[workflowTypeId] = versionInfo;
+            await _documentManager.UpdateAsync(document);
+            return versionInfo;
+        }
         public async Task<WorkflowVersionInfo?> AddWorkflowVersionAsync(string workflowTypeId, string comment)
         {
             WorkflowVersioningDocument document = await _documentManager.GetOrCreateMutableAsync();

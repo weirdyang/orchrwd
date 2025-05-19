@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OC.Workflow.Versioning.Implementation.Models;
 using OC.Workflow.Versioning.Implementation.Services;
 using OrchardCore.Admin;
+using OrchardCore.DisplayManagement.Notify;
 using OrchardCore.Json;
 using OrchardCore.Modules;
 using OrchardCore.Workflows.Models;
@@ -21,19 +23,25 @@ namespace OC.Workflow.Versioning.Controllers
         private readonly IWorkflowVersioningManager _versioningManager;
         private readonly IOptions<DocumentJsonSerializerOptions> _jsonSerializerOptions;
         private readonly ILogger<VersioningController> _logger;
+        private INotifier _notifier;
+        private readonly IHtmlLocalizer _h;
 
         public VersioningController(
             IWorkflowTypeStore workflowTypeStore,
             IWorkflowVersionStore workflowVersionStore,
             IWorkflowVersioningManager versioningManager,
             IOptions<DocumentJsonSerializerOptions> options,
-            ILogger<VersioningController> logger)
+            ILogger<VersioningController> logger,
+            INotifier notifier,
+            IHtmlLocalizer htmlLocalizer)
         {
             _workflowTypeStore = workflowTypeStore ?? throw new ArgumentNullException(nameof(workflowTypeStore));
             _workflowVersionStore = workflowVersionStore ?? throw new ArgumentNullException(nameof(workflowVersionStore));
             _versioningManager = versioningManager ?? throw new ArgumentNullException(nameof(versioningManager));
             _jsonSerializerOptions = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger;
+            _notifier = notifier;
+            _h = htmlLocalizer;
         }
 
         public async Task<IActionResult> IndexAsync()
@@ -135,16 +143,23 @@ namespace OC.Workflow.Versioning.Controllers
             if (workflowType == null)
             {
                 _logger.LogError("Could not find WorkflowType with WorkflowTypeId {id}", id);
-                return NotFound();
+                await _notifier.ErrorAsync(_h[$"Could not find WorkflowType with WorkflowTypeId {id}"]);
+                return await IndexAsync();
             }
 
+            List<VersionInfo> versions = await GetVersionsFromFileSystemAsync(id);
+            if (!versions.Any())
+            {
+                await _notifier.ErrorAsync(_h["Workflow Type has no versions"]);
+                return await IndexAsync();
+            }
             WorkflowVersionInfo? versionInfo = await _versioningManager.GetVersionInfoAsync(id);
             if (versionInfo is null)
             {
                 _logger.LogError("Could not find WorkflowVersionInfo with WorkflowTypeId {id}", id);
-                return NotFound();
+                long latest = versions.Max(x => x.Version).GetValueOrDefault();
+                versionInfo = await _versioningManager.AddDefaultWorkflowVersionAsync(id, latest);
             }
-            List<VersionInfo> versions = await GetVersionsFromFileSystemAsync(id);
             List<VersionComment> versionComments = await GetVersionCommentsFromFileSystemAsync(id);
             JsonObject? active = JObject.FromObject(workflowType, _jsonSerializerOptions.Value.SerializerOptions);
             active?.Remove(nameof(workflowType.Id));

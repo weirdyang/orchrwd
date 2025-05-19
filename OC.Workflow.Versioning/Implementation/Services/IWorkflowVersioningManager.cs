@@ -7,5 +7,6 @@ namespace OC.Workflow.Versioning.Implementation.Services
         Task<WorkflowVersionInfo?> AddWorkflowVersionAsync(string workflowTypeId, string comment);
         Task<WorkflowVersionInfo?> GetVersionInfoAsync(string workflowTypeId);
         Task<WorkflowVersionInfo> UpdateRestoreAsync(string workflowTypeId, long version);
+        Task<WorkflowVersionInfo> AddDefaultWorkflowVersionAsync(string workflowTypeId, long version);
     }
 }

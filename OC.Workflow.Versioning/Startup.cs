@@ -166,6 +166,14 @@ public class WorkflowRestrictionHandler : AuthorizationHandler<WorkflowRestricti
 
                     if (!_restrictionSettings.AllowedUsers.Contains(context.User.Identity?.Name ?? string.Empty))
                     {
+                        //await resource.HttpContext
+                        //    .RequestServices
+                        //    .GetRequiredService<INotifier>()
+                        //    .ErrorAsync(new LocalizedHtmlString("message", "You do not not have permission to view/edit this Workflow as it has been locked"));
+                        //context.Succeed(requirement);
+                        //Microsoft.AspNetCore.Http.PathString pathbase = resource.HttpContext.Request.PathBase;
+                        //resource.HttpContext.Response.Redirect($"{pathbase}/admin");
+                        //return;
                         context.Fail();
                         return;
                     }

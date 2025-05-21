@@ -24,7 +24,7 @@ namespace OC.Workflow.Versioning.Controllers
         private readonly IOptions<DocumentJsonSerializerOptions> _jsonSerializerOptions;
         private readonly ILogger<VersioningController> _logger;
         private INotifier _notifier;
-        private readonly IHtmlLocalizer _h;
+        private readonly IHtmlLocalizer<VersioningController> _h;
 
         public VersioningController(
             IWorkflowTypeStore workflowTypeStore,
@@ -33,7 +33,7 @@ namespace OC.Workflow.Versioning.Controllers
             IOptions<DocumentJsonSerializerOptions> options,
             ILogger<VersioningController> logger,
             INotifier notifier,
-            IHtmlLocalizer htmlLocalizer)
+            IHtmlLocalizer<VersioningController> htmlLocalizer)
         {
             _workflowTypeStore = workflowTypeStore ?? throw new ArgumentNullException(nameof(workflowTypeStore));
             _workflowVersionStore = workflowVersionStore ?? throw new ArgumentNullException(nameof(workflowVersionStore));
